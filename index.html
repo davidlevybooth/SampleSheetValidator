@@ -1,0 +1,257 @@
+<!doctype html>
+<html>
+  <head>
+    <title>SampleSheet Validator</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script>
+        function delete_flash(flash){
+            $(flash).parent().remove()
+        }
+    </script>
+    <!-- Latest compiled and minified CSS -->
+    <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"> -->
+    <!-- Custom -->
+    <style>
+    @import url("https://fonts.googleapis.com/css?family=Lato");
+
+    body,
+    html {
+      background-color: #15202b;
+      color: #ffffff; 
+      font-family: Lato, Arial; 
+      @include box-sizing(border-box);
+    }
+    .middle {
+          background-color: #192734;
+          border-radius: 10px;
+          padding: 20px;
+          margin: 0 auto;
+    }
+    .Main {
+        background-color: #15202b;
+          padding: 20px;
+          width: 50%;
+          height: 30%;
+          margin: 0 auto;
+          margin-top: 100px;
+    }
+    .table-bordered {
+        border-collapse: collapse;
+        margin: 25 0;
+        font-size: 0.9em;
+        font-family: sans-serif;
+        min-width: 400px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+    }
+    .table-bordered  thead tr {
+       background-color: #8899a6;
+       color: #ffffff;
+       text-align: left;
+    }
+    .table-bordered th,
+    .table-bordered td {
+        padding: 12px 15px;
+    }
+    .table-bordered tbody tr {
+        border-bottom: thin  solid #dddddd;
+    }
+
+    .table-bordered tbody tr:nth-of-type(even) {
+        background-color: #22303c;
+    }
+
+    .table-bordered tbody tr:last-of-type {
+        border-bottom: 2px solid #8899a6;
+    }
+    .table-bordered tbody tr:hover {
+          background-color: #1DA1F2;
+          color: #ffffff;
+    }
+    .table-bordered tbody tr.active-row {
+        color: #009879;
+    }
+    .table-bordered tbody tr.error {
+          color: #ff0010;
+    }
+    .table-bordered tbody td.badchr {
+        background-color: #a94442;
+    }
+    h1 {
+        font-weight: normal;
+        font-size: 40px;
+        font-weight: normal;
+        text-transform: uppercase;
+        span { 
+            font-size: 13px;
+            display: block;
+            padding-left: 4px;
+        }
+    }
+    .alert {
+        background-color: #1DA1F2;
+        border-radius: 10px;
+        padding: 8px;
+        border: thin solid #0a3d5c;
+    }
+    .error {
+        color: #a94442;
+        background-color: #f2dede;
+        border: thin solid #ebccd1;
+    }
+    .icon {
+        background-color: #8899a6;
+        margin-left: 10px;
+        position: relative;
+        top: -2px;
+        right: -21px;
+        color: inherit;
+    }
+    .infosec {
+        display: block;
+        float: right;
+        padding-bottom: 40px;
+        height:40px;
+    }
+    .infosec a {
+        color: #8899a6;
+        text-decoration: none;
+    }
+    .spacer {
+       height:40px;
+       margin-bottom: 40px;
+    }
+    </style>
+  </head>
+  <body>
+    
+    <div class="Upload {{ 'Top' if sampleSheet else 'Main' }}">
+        <div class="middle">
+    <h1>Upload Sample Sheet</h1>
+    <form method="POST" action="" enctype="multipart/form-data">
+      <p><input type="file" name="file" accept=".csv"></p>
+      <p><input type="submit" value="{{ 'Clear' if sampleSheet else 'Submit' }}"></p>
+    </form>
+      </div>
+        <div class="infosec"><p>Sequencing and Bioinformatics Consortium <a href="https://github.com/davidlevybooth" target="_blank">on GitHub</a></p></div>
+    </div>
+
+    <div class="spacer"></div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-primary alert-dismissible show {{ category }}" role="alert">
+                <span>{{ message }}</span>
+                <button type="button" class="close icon" data-dismiss="alert" aria-label="Close" onclick=delete_flash(this)>
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    {% if sampleSheet %}
+<!--         <h1>Sample Sheet:</h1>
+        <textarea id="sampleSheets" name="sampleSheets" rows="35" cols="100">{{ sampleSheet }}</textarea>
+         -->
+
+<!--          {'IEMFileVersion': '5', 'Experiment Name': 'ViRe0008_2', 'Date': '2/22/2021', 'Workflow': 'GenerateFASTQ', 'Application': 'FASTQ Only', 'Instrument Type': 'MiSeq', 'Assay': 'Nextera DNA Flex', 'Index Adapters': 'Nextera DNA CD Indexes (96 Indexes plated)', 'Chemistry': 'Amplicon'}
+ -->
+
+         <!--- HEADER -->
+        <h1>Sample Sheet Header</h1>
+        <table class="table table-bordered">
+          <thead>
+              <tr>
+                <th>IEMFileVersion</th>
+                <th>Experiment Name</th>
+                <th>Date</th>
+                <th>Workflow</th>
+                <th>Application</th>
+                <th>Instrument Type</th>
+                <th>Assay</th>
+                <th>Index Adapters</th>
+                <th>Chemistry</th>
+              </tr>
+          </thead>
+        <tr>
+          <td class="IEM">{{ sampleSheet.Header['IEMFileVersion'] }}</td>
+          <td class="name">{{ sampleSheet.Header['Experiment Name'] }}</td>
+          <td class="date">{{ sampleSheet.Header['Date'] }}</td>
+          <td class="Workflow">{{ sampleSheet.Header['Workflow'] }}</td>
+          <td class="application">{{ sampleSheet.Header['Application'] }}</td>
+          <td class="instrument">{{ sampleSheet.Header['Instrument Type'] }}</td>
+          <td class="assay">{{ sampleSheet.Header['Assay'] }}</td>
+          <td class="adapters">{{ sampleSheet.Header['Index Adapters'] }}</td>
+          <td class="chemistry">{{ sampleSheet.Header['Chemistry'] }}</td>
+        </tr>
+        </table>
+        <div class="spacer"></div>
+
+
+        <!--- SETTINGS -->
+        <h1>Settings</h1>
+        <table class="table table-bordered">
+          <thead>
+              <tr>
+                <th>Reverse Complement</th>
+                <th>Adapter</th>
+                <th>Forward Read (bp)</th>
+                <th>Reverse Read (bp)</th>
+              </tr>
+          </thead>
+        <tr>
+          <td class="rc">{{ sampleSheet.Settings['ReverseComplement'] }}</td>
+          <td class="adapter">{{ sampleSheet.Settings['Adapter'] }}</td>
+          <td class="freads">{{ sampleSheet.Reads[0] }}</td>
+          <td class="freads">{{ sampleSheet.Reads[1] }}</td>
+        </tr>
+        </table>
+        <div class="spacer"></div>
+
+        <!-- Samples -->
+        <h1>Sample Sheet Table</h1>
+        <table class="table table-bordered">
+          <thead>
+              <tr>
+                <th>Sample_ID</th>
+                <th>Sample_Name</th>
+                <th>Sample_Plate</th>
+                <th>Sample_Well</th>
+                <th>Index_Plate_Well</th>
+                <th>I7_Index_ID</th>
+                <th>index</th>
+                <th>I5_Index_ID</th>
+                <th>index2</th>
+                <th>GenomeFolder</th>
+                <th>Sample_Project</th>
+                <th>Description</th>
+              </tr>
+          </thead>
+        {% for sample in sampleSheet.samples %}
+        <tr class="{{'error' if sample.Sample_ID in badSamples }}">
+          <td class="{{'badchr' if badChars.get(sample.Sample_ID) == 'Sample_ID'}}">{{ sample.Sample_ID }}</td>
+          <td class="{{'badchr' if badChars.get(sample.Sample_ID) == 'Sample_Name'}}">{{ sample.Sample_Name }}</td>
+          <td class="{{'badchr' if badChars.get(sample.Sample_ID) == 'Sample_Plate'}}">{{ sample.Sample_Plate }}</td>
+          <td class="well">{{ sample.Sample_Well }}</td>
+          <td class="indexplatewell">{{ sample.Index_Plate_Well }}</td>
+          <td class="{{'badchr' if badChars.get(sample.Sample_ID) == 'I7_Index_ID'}}">{{ sample.I7_Index_ID }}</td>
+          <td class="index">{{ sample.index }}</td>
+          <td class="{{'badchr' if badChars.get(sample.Sample_ID) == 'I5_Index_ID'}}">{{ sample.I5_Index_ID }}</td>
+          <td class="index2">{{ sample.index2 }}</td>
+          {% if sample.GenomeFolder %}
+            <td class="genome">{{ sample.GenomeFolder }}</td>
+          {% else %}
+            <td class="genome">None</td>
+          {% endif %}
+          <td class="project">{{ sample.Sample_Project }}</td>
+          <td class="description">{{ sample.Description }}</td>
+        </tr>
+        {% endfor %}
+        </table>
+        <div class="spacer"></div>
+
+    {% endif %}
+  </body>
+</html>
+
