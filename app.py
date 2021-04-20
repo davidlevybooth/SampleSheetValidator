@@ -12,9 +12,7 @@ if sys.executable.endswith('pythonw.exe'):
 # pyvan app.py --no-console
 # pip install sample-sheet
 
-import os
-import re
-from sample_sheet import SampleSheet
+import re, json, collections
 from sample_sheet2 import SampleSheet
 
 from flask import Flask, render_template, request, redirect, url_for, flash
@@ -88,13 +86,43 @@ def checkChars(samplesheet):
                 charSamples[sample.Sample_ID] = column
     return charSamples
 
+def checkNames(samplesheet):
+    sampleNames    = []
+    duplicateNames = []
+    emptyNames     = [] 
+    i = 0
+    for sample in samplesheet.samples:
+        sampleNames.append(sample["Sample_Name"])
+        if sample["Sample_Name"] == "":
+            print(samplesheet.samples[i])
+            flash(f"Warning: missing Sample_Name in row {i+1}", "error")
+        i=+1
+
+    duplicateNames = [sample for sample, count in collections.Counter(sampleNames).items() if count > 1]
+    for sampleName in duplicateNames:
+        flash(f"Duplicate Sample_Name for samples: {sampleName}", "error")
+
+    print(emptyNames)
+    return duplicateNames
+
+def checkExperimentName(samplesheet):
+    exName = False
+    if samplesheet.Header['Experiment Name']:
+        exName = True
+    if not exName:
+        flash(f"Experiment Name is missing from sample sheet", "error")
+    return exName
+
 #setup routes
 #-----------------------------------------------------------
 @app.route('/', methods=['GET', 'POST'])
 def index():
     sample_sheet   = None
+    exName         = False
     bad_samples    = []
     bad_characters = {}
+    sampleList     = []
+    duplicateNames = []
 
     if request.method == 'POST':
         uploaded_file = request.files['file']
@@ -105,9 +133,14 @@ def index():
             sample_sheet   = SampleSheet(os.path.join(app.config['UPLOAD_PATH'], uploaded_file.filename))
             bad_samples    = checkIndexes(sample_sheet)
             bad_characters = checkChars(sample_sheet)
+            sampleHeader   = ['Sample_ID', 'Sample_Name', 'Sample_Plate', 'Sample_Well', 'Index_Plate_Well', 'I7_Index_ID', 'index', 'I5_Index_ID', 'index2', 'GenomeFolder', 'Sample_Project', 'Description']
+            sampleList     = [list(dict(sample).values()) for sample in sample_sheet]
+            sampleList     = [sampleHeader] + sampleList
+            duplicateNames = checkNames(sample_sheet)
+            exName         = checkExperimentName(sample_sheet)
 
-        return render_template('index.html', sampleSheet=sample_sheet, badSamples=bad_samples, badChars=bad_characters)
-    return render_template('index.html', sampleSheet=sample_sheet, badSamples=bad_samples, badChars=bad_characters)
+        return render_template('index.html', sampleSheet=sample_sheet, badSamples=bad_samples, badChars=bad_characters, sampleList=sampleList, duplicateNames=duplicateNames, exName=exName)
+    return render_template('index.html', sampleSheet=sample_sheet, badSamples=bad_samples, badChars=bad_characters, sampleList=sampleList, duplicateNames=duplicateNames, exName=exName)
 
 
 #-----------------------------------------------------------
