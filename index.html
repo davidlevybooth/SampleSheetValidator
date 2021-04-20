@@ -4,10 +4,14 @@
     <title>SampleSheet Validator</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
     <script>
+        // Remove the message flash using x button
         function delete_flash(flash){
             $(flash).parent().remove()
         }
     </script>
+    <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/handsontable@8.3.2/dist/handsontable.full.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/handsontable@8.3.2/dist/handsontable.full.min.css" rel="stylesheet" media="screen">
     <!-- Latest compiled and minified CSS -->
     <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"> -->
     <!-- Custom -->
@@ -120,6 +124,9 @@
        height:40px;
        margin-bottom: 40px;
     }
+    .handsontable td {
+        color: #000000;
+    }
     </style>
   </head>
   <body>
@@ -132,7 +139,7 @@
       <p><input type="submit" value="{{ 'Clear' if sampleSheet else 'Submit' }}"></p>
     </form>
       </div>
-        <div class="infosec"><p>Sequencing and Bioinformatics Consortium <a href="https://github.com/davidlevybooth" target="_blank">on GitHub</a></p></div>
+        <div class="infosec"><p>Sequencing and Bioinformatics Consortium <a href="https://github.com/davidlevybooth/SampleSheetValidator" target="_blank">on GitHub</a></p></div>
     </div>
 
     <div class="spacer"></div>
@@ -151,13 +158,6 @@
     {% endwith %}
 
     {% if sampleSheet %}
-<!--         <h1>Sample Sheet:</h1>
-        <textarea id="sampleSheets" name="sampleSheets" rows="35" cols="100">{{ sampleSheet }}</textarea>
-         -->
-
-<!--          {'IEMFileVersion': '5', 'Experiment Name': 'ViRe0008_2', 'Date': '2/22/2021', 'Workflow': 'GenerateFASTQ', 'Application': 'FASTQ Only', 'Instrument Type': 'MiSeq', 'Assay': 'Nextera DNA Flex', 'Index Adapters': 'Nextera DNA CD Indexes (96 Indexes plated)', 'Chemistry': 'Amplicon'}
- -->
-
          <!--- HEADER -->
         <h1>Sample Sheet Header</h1>
         <table class="table table-bordered">
@@ -176,7 +176,7 @@
           </thead>
         <tr>
           <td class="IEM">{{ sampleSheet.Header['IEMFileVersion'] }}</td>
-          <td class="name">{{ sampleSheet.Header['Experiment Name'] }}</td>
+          <td class="badchr if exName == False">{{ sampleSheet.Header['Experiment Name'] }}</td>
           <td class="date">{{ sampleSheet.Header['Date'] }}</td>
           <td class="Workflow">{{ sampleSheet.Header['Workflow'] }}</td>
           <td class="application">{{ sampleSheet.Header['Application'] }}</td>
@@ -229,16 +229,16 @@
               </tr>
           </thead>
         {% for sample in sampleSheet.samples %}
-        <tr class="{{'error' if sample.Sample_ID in badSamples }}">
+        <tr class="sampletr"> <!-- {{'error' if sample.Sample_ID in badSamples }} -->
           <td class="{{'badchr' if badChars.get(sample.Sample_ID) == 'Sample_ID'}}">{{ sample.Sample_ID }}</td>
-          <td class="{{'badchr' if badChars.get(sample.Sample_ID) == 'Sample_Name'}}">{{ sample.Sample_Name }}</td>
+          <td class="{{'badchr' if badChars.get(sample.Sample_ID) == 'Sample_Name' or 'badchr' if sample.Sample_Name in duplicateNames or 'barchr' if sample.Sample_Name == ''}}">{{ sample.Sample_Name }}</td>
           <td class="{{'badchr' if badChars.get(sample.Sample_ID) == 'Sample_Plate'}}">{{ sample.Sample_Plate }}</td>
           <td class="well">{{ sample.Sample_Well }}</td>
           <td class="indexplatewell">{{ sample.Index_Plate_Well }}</td>
           <td class="{{'badchr' if badChars.get(sample.Sample_ID) == 'I7_Index_ID'}}">{{ sample.I7_Index_ID }}</td>
-          <td class="index">{{ sample.index }}</td>
+          <td class="{{'badchr' if sample.Sample_ID in badSamples}}">{{ sample.index }}</td>
           <td class="{{'badchr' if badChars.get(sample.Sample_ID) == 'I5_Index_ID'}}">{{ sample.I5_Index_ID }}</td>
-          <td class="index2">{{ sample.index2 }}</td>
+          <td class="{{'badchr' if sample.Sample_ID in badSamples}}">{{ sample.index2 }}</td>
           {% if sample.GenomeFolder %}
             <td class="genome">{{ sample.GenomeFolder }}</td>
           {% else %}
@@ -250,7 +250,23 @@
         {% endfor %}
         </table>
         <div class="spacer"></div>
+        <div id="example"></div>
+        <script>
+        //Data for table example
+        var data = JSON.parse('{{ sampleList | tojson | safe }}');
+        console.log(data);
 
+        //table example
+        var container = document.getElementById('example');
+        var hot = new Handsontable(container, {
+          data: data,
+          rowHeaders: true,
+          colHeaders: true,
+          filters: true,
+          dropdownMenu: true,
+          licenseKey: 'non-commercial-and-evaluation'
+        });
+    </script>
     {% endif %}
   </body>
 </html>
